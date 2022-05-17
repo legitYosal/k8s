@@ -1,0 +1,9 @@
+---
+# roles:
+#   - name: mrlesmithjr.netplan
+#     version: v0.3.0
+#   - name: geerlingguy.docker
+#     version: 4.1.3
+collections:
+  - name: ansible.posix
+  - name: kubernetes.core

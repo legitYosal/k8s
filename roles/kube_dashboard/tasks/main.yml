@@ -1,0 +1,103 @@
+---
+- name: Creates manifests directory
+  ansible.builtin.file:
+    path: "{{ custom_manifests_dir }}"
+    state: directory
+    mode: 0666
+
+- name: Download dashboard manifest to the cluster.
+  ansible.builtin.get_url:
+    url: "{{ dashboard_manifest_url }}"
+    dest: "{{ dashboard_manifest_path }}"
+    mode: '0664'
+  register: register_downloaded
+
+- name: Install and apply dashboard
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ dashboard_manifest_path }}"
+  when: register_downloaded.changed
+
+# - copy certificates to target host
+# - create secret
+#   kubectl create secret generic kubernetes-dashboard-certs --from-file=$HOME/certs -n kubernetes-dashboard
+# - patch kubernetes-dashboard service with:
+          # ports:
+          #   - containerPort: 8443
+          #     protocol: TCP
+          # args:
+          #   - --tls-cert-file=/tls.crt
+          #   - --tls-key-file=/tls.key
+          #   - --auto-generate-certificates
+
+- name: Create dashboard ingress
+  kubernetes.core.k8s:
+    state: present
+    kind: Ingress
+    namespace: kubernetes-dashboard
+    definition:
+      apiVersion: networking.k8s.io/v1
+      metadata:
+        name: kubernetes-dashboard-ingress
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      spec:
+        ingressClassName: nginx
+        tls:
+          - hosts:
+            - "{{ dashboard_domain }}"
+            secretName: kubernetes-dashboard-certs
+        rules:
+        - host: "{{ dashboard_domain }}"
+          http:
+            paths:
+            - path: "/"
+              pathType: Prefix
+              backend:
+                service:
+                  name: kubernetes-dashboard
+                  port:
+                    number: 443
+    
+
+- name: Create dashboard service account
+  kubernetes.core.k8s:
+    state: present
+    kind: ServiceAccount
+    namespace: kubernetes-dashboard
+    definition:
+      apiVersion: v1
+      metadata:
+        name: admin-user
+        namespace: kubernetes-dashboard
+
+- name: Create dashboard service role binding
+  kubernetes.core.k8s:
+    state: present
+    kind: ClusterRoleBinding
+    namespace: kubernetes-dashboard
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: admin-user
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: admin-user
+        namespace: kubernetes-dashboard
+
+
+- name: Get dashboard admin token
+  ansible.builtin.shell: "{% raw %}kubectl -n kubernetes-dashboard get secret \
+    $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath='{.secrets[0].name}') \
+    -o go-template='{{.data.token | base64decode}}'{% endraw %}"
+  register: register_token
+  changed_when: false
+  failed_when: register_token.rc != 0
+
+- debug: var=register_token.stdout

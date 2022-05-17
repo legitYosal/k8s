@@ -1,0 +1,12 @@
+---
+
+# iptables_harden_interfaces:
+#   - eth0
+
+# iptables_filter_accept_tcp_rules:
+#   - name: node_exporter
+#     interface: eth1
+#     port: "9100"
+#   - name: webhook
+#     interface: eth0
+#     port: "9000"

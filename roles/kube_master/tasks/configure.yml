@@ -1,0 +1,40 @@
+---
+
+- name: Create .kube directory
+  become: true
+  become_user: "{{ ansible_user }}"
+  ansible.builtin.file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+
+- name: Copy admin.conf to user's kube config
+  become: true
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+
+- name: Create .kube directory for root
+  become: true
+  ansible.builtin.file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+
+- name: Copy admin.conf to root user
+  become: true
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: $HOME/.kube/config
+    remote_src: yes
+    owner: root
+
+- name: Add kubectl auto complete
+  become: true
+  become_user: "{{ ansible_user }}"
+  ansible.builtin.lineinfile:
+    path: $HOME/.bashrc
+    regexp: '^source <(kubectl completion bash)$'
+    line: "source <(kubectl completion bash)"

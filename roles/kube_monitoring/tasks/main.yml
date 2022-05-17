@@ -1,0 +1,99 @@
+---
+- name: Creates manifests directory
+  ansible.builtin.file:
+    path: "{{ custom_manifests_dir }}"
+    state: directory
+    mode: 0666
+
+- name: Creates kube-prometheus dir
+  ansible.builtin.file:
+    path: "{{ kube_prometheus_dir_path }}"
+    state: directory
+    mode: 0666
+
+- name: Create monitoring namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: monitoring
+
+- name: Download kube-prometheus 
+  ansible.builtin.get_url:
+    url: "{{ kube_prometheus_url }}"
+    dest: "{{ kube_prometheus_tar_gz_path }}"
+
+- name: Unarchive kube-prometheus
+  ansible.builtin.unarchive:
+    src: "{{ kube_prometheus_tar_gz_path }}"
+    dest: "{{ kube_prometheus_dir_path }}"
+    extra_opts: [--strip-components=1]
+    remote_src: true
+    mode: 0666
+  register: register_kube_prometheus_manifests
+
+- name: Apply kube-prometheus setup
+  ansible.builtin.shell: "kubectl apply -f {{ kube_prometheus_dir_path }}/manifests/setup --server-side=true"
+  when: register_kube_prometheus_manifests.changed
+
+- name: Wait for setup
+  ansible.builtin.shell: kubectl get servicemonitors --all-namespaces
+  register: register_setup
+  changed_when: false
+  until: register_setup.rc == 0
+  retries: 10
+  delay: 10
+
+- name: Apply kube-prometheus main
+  ansible.builtin.shell: "kubectl apply -f {{ kube_prometheus_dir_path }}/manifests"
+  when: register_kube_prometheus_manifests.changed
+
+- name: Create grafana Ingress
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: grafana-ui
+        namespace: monitoring
+        annotations:
+          kubernetes.io/ingress.class: nginx
+      spec:
+        rules:
+        - host: "{{ graf_domain }}"
+          http:
+            paths:
+            - path: "/"
+              pathType: Prefix
+              backend:
+                service:
+                  name: grafana
+                  port: 
+                    number: 3000
+
+- name: Create prometheus Ingress
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: prometheus-ui
+        namespace: monitoring
+        annotations:
+          kubernetes.io/ingress.class: nginx
+      spec:
+        rules:
+        - host: "{{ prom_domain }}"
+          http:
+            paths:
+            - path: "/"
+              pathType: Prefix
+              backend:
+                service:
+                  name: prometheus-k8s
+                  port: 
+                    number: 9090

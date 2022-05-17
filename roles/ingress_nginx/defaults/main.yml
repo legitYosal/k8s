@@ -1,0 +1,7 @@
+---
+nginx_ingress_manifest_url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/baremetal/deploy.yaml
+custom_manifests_dir: /tmp/manifests
+nginx_ingress_manifest_path: "{{ custom_manifests_dir }}/nginx_ingress_service.yml"
+
+nginx_ingress_node_port_http: 30500
+nginx_ingress_node_port_https: 30501

@@ -1,0 +1,4 @@
+---
+num_replicas_zookeeper: 3
+num_replicas_kafka: 3
+custom_manifests_dir: /tmp/manifests

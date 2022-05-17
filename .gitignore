@@ -1,0 +1,5 @@
+.vscode
+ansible/ssh/privates/*.id_rsa
+env.yml
+fetched
+*.private.md

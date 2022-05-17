@@ -1,0 +1,9 @@
+---
+custom_manifests_dir: /tmp/manifests
+kube_prometheus_dir_path: "{{ custom_manifests_dir }}/kube_prometheus"
+kube_prometheus_tar_gz_path: "{{ custom_manifests_dir }}/kube_prometheus.tar.gz"
+kube_prometheus_url: https://github.com/prometheus-operator/kube-prometheus/archive/refs/tags/v0.10.0.tar.gz
+
+
+prom_domain: prom.kube.usefss.io
+graf_domain: graf.kube.usefss.io

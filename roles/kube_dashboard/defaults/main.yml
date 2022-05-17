@@ -1,0 +1,4 @@
+custom_manifests_dir: /tmp/manifests
+dashboard_manifest_path: "{{ custom_manifests_dir }}/kubernetes_dashboard.yml"
+dashboard_manifest_url: https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
+dashboard_domain: dashboard.kube.usefss.io

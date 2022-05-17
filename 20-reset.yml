@@ -1,0 +1,11 @@
+--- # Configure 
+
+- name: Reset all the kubelet instances at once
+  hosts: all_kube
+  remote_user: ubuntu
+  become: true
+  become_method: sudo
+  connection: ssh
+  gather_facts: true
+  roles:
+    - reset_kube

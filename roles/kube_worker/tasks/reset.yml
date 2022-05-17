@@ -1,0 +1,6 @@
+---
+
+- name: reset kube worker node
+  become: true
+  ansible.builtin.command: kubeadm reset --force
+  register: register_tear_down

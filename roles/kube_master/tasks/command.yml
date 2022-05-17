@@ -1,0 +1,31 @@
+---
+
+- name: Upload certificates and sign them with key
+  become: true
+  ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
+  register: register_certificate_key
+  changed_when: false
+
+- name: Generate control plane join command
+  become: true
+  ansible.builtin.command: "kubeadm token create --print-join-command --certificate-key {{ register_certificate_key.stdout_lines[-1] }}"
+  register: register_join_command
+  changed_when: false
+
+- name: Save control plane join command
+  become: true
+  local_action: copy content={{ register_join_command.stdout }} dest={{ cplane_join_command_path }}
+  changed_when: false
+
+- name: Generate worker join command
+  become: true
+  ansible.builtin.command: "kubeadm token create --print-join-command"
+  register: register_join_command
+  changed_when: false
+
+- name: Save worker join command
+  become: true
+  local_action: copy content={{ register_join_command.stdout }} dest={{ worker_join_command_path }}
+  changed_when: false
+
+- debug: var=cplane_join_command

@@ -1,0 +1,18 @@
+---
+  
+- import_tasks: remove_apt_sources.yml
+  when: apply_remove_apt_sources
+
+- import_tasks: packages.yml
+  when: apply_install_essential_apt_packages
+
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: swap
+    fstype: swap
+    state: absent
+
+- name: Disable swap
+  ansible.builtin.command: swapoff -a
+  register: res
+  changed_when: res.rc != 0

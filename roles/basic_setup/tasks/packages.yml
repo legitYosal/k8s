@@ -1,0 +1,19 @@
+---
+# Install required packages for Ubuntu server
+# - name: Update apt cache and upgrade packages
+#   ansible.builtin.apt:
+#     upgrade: false
+#     update_cache: true
+#     cache_valid_time: 3600
+
+- name: Update apt cache and make sure packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    update_cache: true
+    cache_valid_time: 3600
+  retries: 3
+  delay: 10
+  become: true
+  register: result
+  until: result is succeeded
+  loop: "{{ essential_apt_packages }}"

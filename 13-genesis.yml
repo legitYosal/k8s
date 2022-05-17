@@ -1,0 +1,14 @@
+--- # Configure
+
+- name: Configure kube master genesis node
+  hosts: kube_genesis
+  remote_user: "{{ ansible_user }}"
+  become: true
+  gather_facts: true
+  roles:
+    - netplan
+    - basic_setup
+    - docker
+    - basic_kube
+    - kube_master
+    # iptables

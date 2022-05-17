@@ -1,0 +1,189 @@
+---
+# configure iptables utils
+- name: Install networkd-dispatcher
+  ansible.builtin.apt:
+    name: networkd-dispatcher
+    update_cache: true
+    cache_valid_time: 3600
+  retries: 3
+  delay: 10
+  become: true
+
+- name: IPTABLES - Copy persist script
+  become: true
+  ansible.builtin.copy:
+    src: iptables-save-dockerpatible
+    dest: /usr/local/bin/iptables-save-dockerpatible
+    owner: root
+    group: root
+    mode: "a+x"
+
+- name: Persist with networkd dispatcher
+  become: true
+  ansible.builtin.copy:
+    src: persist
+    dest: /etc/networkd-dispatcher/routable.d/50-ifup-hooks
+    owner: root
+    group: root
+    mode: "a+x"
+
+# config rules
+- name: Get existing iptables rules
+  become: true
+  ansible.builtin.command: iptables -S
+  changed_when: false
+  register: iptables_rules
+
+- name: debug iptables existing rules
+  ansible.builtin.debug: var=iptables_rules
+
+- name: IPTABLES - Create FILTERS chain if not exist
+  become: true
+  ansible.builtin.command: iptables -N FILTERS
+  when: "'-N FILTERS' not in iptables_rules.stdout"
+
+- name: IPTABLES - Create DOCKER-USER chain if not exist
+  become: true
+  ansible.builtin.command: iptables -N DOCKER-USER
+  when: "'-N DOCKER-USER' not in iptables_rules.stdout"
+
+# There are three existing states with iptables ===>>>
+#   1. there is no rules for iptables
+#   2. there is correct rules for iptables
+#   3. there are some garbage rules that should be overwritten
+# Solution: we have to check three chains
+#   FILTERS: we are going to add some specific 'comment' at the ending rule
+#   of FILTERS chain, for example 'A', so if there is an 'A' in our rules we
+#   are going to assume that FILTERS chain is ok, other wise it is empty or
+#   garbage, so if there is no '-A FILTERS' we are going to assume chain is
+#   empty, otherwise we are going to flush the chain
+#   flow:
+#     if 'A' not in .stdout and '-A FILTERS' in .stdout:
+#       flush it
+#     else:
+#       don't flush it
+# continue in readme ...
+
+- name: IPTABLES - Flush INPUT
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    flush: true
+  when: "'-A INPUT' in iptables_rules.stdout and
+    'jump_input_to_filters' not in iptables_rules.stdout"
+
+- name: IPTABLES - Flush DOCKER-USER
+  become: true
+  ansible.builtin.iptables:
+    chain: DOCKER-USER
+    flush: true
+  when: "'-A DOCKER-USER' in iptables_rules.stdout and
+    'jump_docker_user_to_filters' not in iptables_rules.stdout"
+
+- name: IPTABLES - Flush FILTERS
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    flush: true
+  when: "'-A FILTERS' in iptables_rules.stdout and
+    'drop_all_at_end' not in iptables_rules.stdout"
+
+- name: IPTABLES - Target INPUT to FILTERS
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    jump: FILTERS
+    comment: jump_input_to_filters
+
+- name: IPTABLES - Target DOCKER-USER to FILTERS
+  become: true
+  ansible.builtin.iptables:
+    chain: DOCKER-USER
+    jump: FILTERS
+    comment: jump_docker_user_to_filters
+
+- name: IPTABLES - Return DOCKER-USER to FORWARD
+  become: true
+  ansible.builtin.iptables:
+    chain: DOCKER-USER
+    jump: RETURN
+    comment: return_remained_back_from_docker_user
+
+- name: Count number of existing filter rules in iptables
+  ansible.builtin.set_fact:
+    count_existing_filters_rules: "{{ (count_existing_filters_rules | default(0)) | int + 1 }}"
+  when:
+    - item.startswith('-A FILTERS')
+  loop: "{{ iptables_rules.stdout_lines }}"
+
+- name: debug number of existing rules in filters chain
+  ansible.builtin.debug: var=count_existing_filters_rules
+
+- name: debug number of expected rules in filters chain
+  ansible.builtin.debug: var=number_of_filters_expected_rules
+
+- name: Flush filters if new or unknown rule is present
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    flush: true
+  when:
+    - "'-A FILTERS' in iptables_rules.stdout"
+    - "count_existing_filters_rules != number_of_filters_expected_rules"
+
+- name: IPTABLES - Allow SSH connections
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    protocol: tcp
+    destination_port: "22"
+    jump: ACCEPT
+    comment: "allow_ssh_interface"
+
+- name: IPTABLES - Allow Ping
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    protocol: icmp
+    jump: ACCEPT
+    comment: "allow_ping_interface"
+
+- name: IPTABLES - Add ESTABLISHED,RELATED
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+    comment: "allow_stablish_related"
+
+- name: IPTABLES - Allow tcp rules
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    protocol: tcp
+    destination_port: "{{ item.port }}"
+    jump: ACCEPT
+    in_interface: "{{ item.interface }}"
+    source: "{{ item.source if item.source is defined else '0.0.0.0/0' }}"
+    comment: "allow_tcp_interface_{{ item.interface }}_port_{{ item.port }}_name_{{ item.name }}"
+  when:
+    - "item.port is defined"
+    - "item.interface is defined"
+  loop: "{{ iptables_filter_accept_tcp_rules }}"
+
+- name: IPTABLES - Reject other things
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    in_interface: "{{ item }}"
+    jump: DROP
+    comment: "drop_all_at_end_{{ item }}"
+  loop: "{{ iptables_harden_interfaces }}"
+  notify: iptables save
+
+- name: IPTABLES - Return from FILTERS
+  become: true
+  ansible.builtin.iptables:
+    chain: FILTERS
+    jump: RETURN
+    comment: return_remained_back_from_filters

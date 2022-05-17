@@ -1,0 +1,12 @@
+---
+
+- name: Copy join command to host
+  become: true
+  ansible.builtin.copy:
+    src: "{{ worker_join_command_path }}"
+    dest: "{{ worker_join_command_path }}"
+    mode: 0777
+
+- name: Join kuber worker node
+  become: true
+  ansible.builtin.command: "sh {{ worker_join_command_path }}"

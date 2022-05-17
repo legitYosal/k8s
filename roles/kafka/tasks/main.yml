@@ -1,0 +1,70 @@
+---
+- name: Creates manifests directory
+  ansible.builtin.file:
+    path: "{{ custom_manifests_dir }}"
+    state: directory
+    mode: 0666
+
+- name: Creates kafka manifests directory
+  ansible.builtin.file:
+    path: "{{ custom_manifests_dir }}/kafka"
+    state: directory
+    mode: 0666
+
+- name: Creates zookeeper manifests directory
+  ansible.builtin.file:
+    path: "{{ custom_manifests_dir }}/zookeeper"
+    state: directory
+    mode: 0666
+
+- name: Copy zookeeper service
+  ansible.builtin.copy:
+    src: zookeeper/service.yml
+    dest: "{{ custom_manifests_dir }}/zookeeper/service.yml"
+    mode: 0666
+  register: reg_manifest_upload
+
+- name: Install and apply zk service
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ custom_manifests_dir }}/zookeeper/service.yml"
+  when: reg_manifest_upload.changed
+
+- name: Template zookeeper stateful
+  ansible.builtin.template:
+    src: zookeeper/statefulset.yml.j2
+    dest: "{{ custom_manifests_dir }}/zookeeper/statefulset.yml"
+    mode: 0666
+  register: reg_manifest_upload
+
+- name: Install and apply zk statefulset
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ custom_manifests_dir }}/zookeeper/statefulset.yml"
+  when: reg_manifest_upload.changed
+
+- name: Copy kafka service
+  ansible.builtin.copy:
+    src: kafka/service.yml
+    dest: "{{ custom_manifests_dir }}/kafka/service.yml"
+    mode: 0666
+  register: reg_manifest_upload
+
+- name: Install and apply kfk service
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ custom_manifests_dir }}/kafka/service.yml"
+  when: reg_manifest_upload.changed
+
+- name: Template kafka stateful
+  ansible.builtin.template:
+    src: kafka/statefulset.yml.j2
+    dest: "{{ custom_manifests_dir }}/kafka/statefulset.yml"
+    mode: 0666
+  register: reg_manifest_upload
+
+- name: Install and apply kfk statefulset
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ custom_manifests_dir }}/kafka/statefulset.yml"
+  when: reg_manifest_upload.changed

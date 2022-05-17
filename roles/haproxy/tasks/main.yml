@@ -1,0 +1,36 @@
+---
+
+- name: Stop nginx 
+  ansible.builtin.systemd:
+    name: nginx
+    state: stopped
+    enabled: false
+    force: true
+
+- name: Update apt cache and install haproxy
+  ansible.builtin.apt:
+    name: "haproxy"
+    update_cache: true
+    cache_valid_time: 3600
+  retries: 3
+  delay: 10
+  become: true
+
+- name: Configuring haproxy
+  become: true
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_default_config_file_path }}"
+    mode: 0644
+  register: register_haproxy_config
+
+# - name: Veirify config
+#   become: true
+#   ansible.builtin.command: "haproxy -c -f {{ haproxy_default_config_file_path }}"
+
+- name: Restart haproxy
+  become: true
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
+  when: register_haproxy_config.changed

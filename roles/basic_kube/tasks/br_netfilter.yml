@@ -1,0 +1,34 @@
+- name: Register bridge net filter
+  become: true
+  ansible.builtin.shell: lsmod | grep br_netfilter
+  changed_when: false
+  register: lsmod_grep_br_netfilter
+
+- name: Activate br_netfilter
+  become: true
+  ansible.builtin.command: sudo modprobe br_netfilter
+  when: "'br_netfilter' not in lsmod_grep_br_netfilter.stdout"
+
+- name: Copy br_netfilter modules-load
+  become: true
+  ansible.builtin.copy:
+    src: modules_load_k8s.conf
+    dest: "{{ modules_load_k8s_conf_address }}"
+    owner: root
+    group: root
+    mode: "a+x"
+
+- name: Copy br_netfilter sysctl
+  become: true
+  ansible.builtin.copy:
+    src: sysctl_k8s.conf
+    dest: "{{ sysctl_k8s_conf_address }}"
+    owner: root
+    group: root
+    mode: "a+x"
+  register: copy_sysctl_br_netfilter
+
+- name: Reload sysctl configs
+  become: true
+  ansible.builtin.command: sudo sysctl --system
+  when: copy_sysctl_br_netfilter.changed

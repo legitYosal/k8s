@@ -1,0 +1,11 @@
+---
+- name: Remove Arvan cloud apt repos
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: absent
+    update_cache: false
+  retries: 3
+  delay: 10
+  register: result
+  until: result is succeeded
+  loop: "{{ remove_apt_sources_targets }}"

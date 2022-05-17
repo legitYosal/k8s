@@ -1,0 +1,42 @@
+---
+- name: Creates manifests directory
+  file:
+    path: "{{ custom_manifests_dir }}"
+    state: directory
+    mode: 0666
+
+- name: Download nginx ingress bare manifest to the cluster.
+  ansible.builtin.get_url:
+    url: "{{ nginx_ingress_manifest_url }}"
+    dest: "{{ nginx_ingress_manifest_path }}"
+    mode: '0664'
+  register: register_downloaded
+
+- name: Install and apply controller 
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ nginx_ingress_manifest_path }}"
+  when: register_downloaded.changed
+
+- name: Patch nginx controller ingress service
+  kubernetes.core.k8s:
+    state: patched
+    kind: Service
+    name: ingress-nginx-controller
+    namespace: ingress-nginx
+    definition:
+      spec:
+        ports:
+        - appProtocol: http
+          name: http
+          port: 80
+          protocol: TCP
+          targetPort: http
+          nodePort: "{{ nginx_ingress_node_port_http }}"
+        - appProtocol: https
+          name: https
+          port: 443
+          protocol: TCP
+          targetPort: https
+          nodePort: "{{ nginx_ingress_node_port_https }}"
+        externalTrafficPolicy: Local

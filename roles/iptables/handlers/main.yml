@@ -1,0 +1,5 @@
+---
+- name: Save iptables
+  ansible.builtin.command: iptables-save-dockerpatible
+  listen: iptables save
+  become: true

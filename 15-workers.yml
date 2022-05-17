@@ -1,0 +1,14 @@
+--- # Configure
+
+- name: Configure worker nodes
+  hosts: kube_workers
+  remote_user: "{{ ansible_user }}"
+  become: true
+  gather_facts: true
+  roles:
+    - netplan
+    - basic_setup
+    - docker
+    - basic_kube
+    - kube_worker
+    # iptables

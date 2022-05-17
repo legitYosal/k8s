@@ -1,0 +1,19 @@
+---
+- name: Download docker-compose v2
+  ansible.builtin.get_url:
+    url: https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    mode: "+x"
+
+- name: Download compose-switch
+  ansible.builtin.get_url:
+    url: https://github.com/docker/compose-switch/releases/download/v1.0.4/docker-compose-linux-amd64
+    dest: /usr/local/bin/compose-switch
+    mode: "+x"
+
+- name: Update alternatives
+  community.general.alternatives:
+    name: docker-compose
+    link: /usr/local/bin/docker-compose
+    path: /usr/local/bin/compose-switch
+    priority: "100"

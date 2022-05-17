@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ $IFACE == eth* ]]; then
+    if sudo /sbin/iptables-restore -n /etc/iptables.conf; then
+        printf "%%s  ==> Done restoring Iptables configs\\n" "$(date)"  | sudo tee -a /var/log/networkd-dispatcher.log 2>&1
+        exit 0
+    else
+        printf "%%s  ==> Could not restore Iptables configs\\n" "$(date)" | sudo tee -a /var/log/networkd-dispatcher.log 2>&1
+        exit 1
+    fi
+fi

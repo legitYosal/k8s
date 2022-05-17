@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import subprocess
+
+if __name__ == '__main__':
+    input_rules = subprocess.check_output(
+        ['sudo', 'iptables', '-t', 'filter', '-S', 'INPUT']
+    ).decode().split('\n')[1:-1]
+    docker_user_rules = subprocess.check_output(
+        ['sudo', 'iptables', '-t', 'filter', '-S', 'DOCKER-USER']
+    ).decode().split('\n')[1:-1]
+    filter_input_exports = subprocess.check_output(
+        ['sudo', 'iptables', '-t', 'filter', '-S', 'FILTERS']
+    ).decode().split('\n')[1:-1]
+    must_write = [
+        '*filter',
+        ':INPUT ACCEPT [0:0]',  # default chain
+        ':FORWARD DROP [0:0]',  # default chain
+        ':OUTPUT ACCEPT [0:0]',  # default chain
+        # custom chain for docker even if docker is not installed we will create it anyway
+        ':DOCKER-USER - [0:0]',
+        # custom chain for union of INPUT and DOCKER-USER chains
+        ':FILTERS - [0:0]',
+        '-F INPUT',
+        '-F DOCKER-USER',
+        '-F FILTERS',
+        *docker_user_rules,
+        *input_rules,
+        *filter_input_exports,
+        'COMMIT'
+    ]
+    nat_postroute_export = subprocess.check_output(
+        ['sudo', 'iptables', '-t', 'filter', '-S', 'FILTERS']
+    ).decode()
+
+    print('Writing configs to /etc/iptables.conf')
+    with open('/etc/iptables.conf', 'w') as f:
+        for line in must_write:
+            print(line)
+            f.write("%s\n" % line)

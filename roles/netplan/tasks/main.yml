@@ -1,0 +1,26 @@
+---
+- name: Find old configs from netplan
+  ansible.builtin.find:
+    paths: "{{ netplan_config_root }}"
+    file_type: file
+    excludes:
+      - "{{ netplan_config_file_name }}"
+  register: found_old_netplan_files
+
+- name: Delete netplan old files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ found_old_netplan_files['files'] }}"
+
+- name: Configuring Netplan
+  ansible.builtin.template:
+    src: "{{ netplan_default_template_name }}"
+    dest: "{{ netplan_config_file }}"
+    mode: 0644
+  become: true
+  when: netplan_configurations is defined
+  notify: netplan apply config
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

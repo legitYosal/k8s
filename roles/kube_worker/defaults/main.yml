@@ -1,0 +1,3 @@
+---
+worker_join_command_path: /tmp/kube_worker_join_command
+tear_down_cluster: false

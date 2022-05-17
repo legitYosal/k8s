@@ -1,0 +1,12 @@
+--- # Configure
+
+- name: Configure load balancer
+  hosts: balancers
+  remote_user: "{{ ansible_user }}"
+  become: true
+  gather_facts: true
+  roles:
+    - netplan
+    - basic_setup
+    - haproxy
+    # iptables

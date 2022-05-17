@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+
+iface = os.environ.get("IFACE", "")
+
+if iface.startswith("eth"):
+
+    postrouting_rules = subprocess.check_output(
+        ['sudo', 'iptables', '-t', 'nat', '-S', 'POSTROUTING']
+    ).decode()
+
+    if "local_routing" not in postrouting_rules and "masquerading" in postrouting_rules:
+
+        subprocess.check_output(
+            ['sudo', 'iptables', '-I', 'POSTROUTING', '1', '-t', 'nat', '-A', 'POSTROUTING',
+             '-m', 'comment', '--comment', 'local_routing',
+             '-m', 'addrtype', '--src-type', 'LOCAL', '-j', 'ACCEPT']
+        ).decode()
+
+    if "local_routing" in postrouting_rules and "masquerading" not in postrouting_rules:
+
+        subprocess.check_output(
+            ['sudo', 'iptables', '-t', 'nat', '-A', 'POSTROUTING',
+             '-m', 'comment', '--comment', 'masquerading',
+             '-o', 'eth0', '-j', 'MASQUERADE']
+        ).decode()
+
+    if "masquerading" not in postrouting_rules and "local_routing" not in postrouting_rules:
+
+        subprocess.check_output(
+            ['sudo', 'iptables', '-t', 'nat', '-A', 'POSTROUTING',
+             '-m', 'comment', '--comment', 'local_routing',
+             '-m', 'addrtype', '--src-type', 'LOCAL', '-j', 'ACCEPT']
+        ).decode()
+
+        subprocess.check_output(
+            ['sudo', 'iptables', '-t', 'nat', '-A', 'POSTROUTING',
+             '-m', 'comment', '--comment', 'masquerading',
+             '-o', 'eth0', '-j', 'MASQUERADE']
+        ).decode()
+
+    forwarding_rules = subprocess.check_output(
+         ['sudo', 'iptables', '-S', 'FORWARD']
+    ).decode()
+
+    if "accept_forward" not in forwarding_rules:
+        subprocess.check_output(
+            ['sudo', 'iptables', '--policy', 'FORWARD', 'ACCEPT',
+             '-m', 'comment', '--comment', 'accept_forward']
+        ).decode()

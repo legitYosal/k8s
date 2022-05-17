@@ -1,0 +1,13 @@
+--- # Configure
+
+- name: Configure gateway server
+  hosts: gateways
+  remote_user: "{{ ansible_user }}"
+  become: true
+  become_method: sudo
+  connection: ssh
+  gather_facts: true
+  roles:
+    - forwarding
+    - basic_setup
+    # iptables

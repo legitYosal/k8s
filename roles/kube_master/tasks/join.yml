@@ -1,0 +1,14 @@
+---
+
+- name: Copy join command to host
+  become: true
+  ansible.builtin.copy:
+    src: "{{ cplane_join_command_path }}"
+    dest: "{{ cplane_join_command_path }}"
+    mode: 0777
+
+- name: Join kuber cluster master node
+  become: true
+  ansible.builtin.command: "sh {{ cplane_join_command_path }}"
+
+- ansible.builtin.import_tasks: configure.yml

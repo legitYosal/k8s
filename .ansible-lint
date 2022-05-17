@@ -1,0 +1,12 @@
+---
+use_default_rules: true
+offline: false
+skip_list:
+  - command-instead-of-shell
+kinds:
+  - playbook: "*.{yml,yaml}"
+  - tasks: "**/tasks/*.{yml,yaml}"
+  - vars: "**/vars/*.{yml,yaml}"
+  - defaults: "**/defaults/*.{yml,yaml}"
+  - handlers: "**/handlers/*.{yml,yaml}"
+  - meta: "**/meta/main.{yml,yaml}"

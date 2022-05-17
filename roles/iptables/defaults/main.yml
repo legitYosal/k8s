@@ -1,0 +1,25 @@
+---
+iptables_harden_interfaces:
+  - eth0
+
+iptables_filter_accept_tcp_rules:
+#   - name: mysql
+#     interface: eth0
+#     port: "3306"
+#     source: 192.168.0.20/32
+#   - name: db_exporter
+#     interface: eth0
+#     port: "9104"
+
+default_hardening_rules: # these are default rules for filters chain
+  - name: ssh
+  - name: ping
+  - name: established
+  - name: return
+
+# default_rules_count ==>
+# ssh + ping + established = 3
+# + reject for all of interfaces in iptables_harden_interfaces
+default_rules_count: "{{(default_hardening_rules | length) + (iptables_harden_interfaces | length)}}"
+
+number_of_filters_expected_rules: "{{default_rules_count | int + (iptables_filter_accept_tcp_rules | length)}}"

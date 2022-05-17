@@ -1,0 +1,5 @@
+network:
+    version: 2
+{% if netplan_configurations is defined %}
+{{ netplan_configurations | to_nice_yaml | indent(4, true) }}
+{% endif %}

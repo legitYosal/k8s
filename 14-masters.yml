@@ -1,0 +1,16 @@
+--- # Configure
+
+- name: Configure kube other master nodes
+  hosts: kube_masters
+  remote_user: "{{ ansible_user }}"
+  become: true
+  become_method: sudo
+  connection: ssh
+  gather_facts: true
+  roles:
+    - netplan
+    - basic_setup
+    - docker
+    - basic_kube
+    - kube_master
+    # iptables

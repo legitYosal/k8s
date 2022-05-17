@@ -1,0 +1,40 @@
+---
+
+- name: Reset kuber cluster master node
+  become: true
+  ansible.builtin.command: kubeadm reset --force
+  register: register_tear_down
+
+- name: Delete kubernetes configurations
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /root/.kube/config
+    - "/home/{{ ansible_user }}/.kube/config"
+    - /etc/cni/net.d
+    - /run/flannel
+    - /var/lib/cni
+
+- name: Remove flannel vinterfaces
+  become: true
+  ansible.builtin.command: "sudo ip link delete {{ item }}"
+  register: res
+  changed_when: res.rc == 0
+  ignore_errors: true
+  loop:
+    - cni0
+    - flannel.1
+
+- name: Reset iptables
+  become: true
+  ansible.builtin.shell: iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
+- name: Restart docker service
+  become: true
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+
+

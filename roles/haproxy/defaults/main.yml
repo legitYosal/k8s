@@ -1,0 +1,15 @@
+---
+haproxy_default_config_file_path: /etc/haproxy/haproxy.cfg
+
+# haproxy_balances:
+#   - frontend:
+#       mode: tcp
+#       option: tcplog
+#     frontend_name: kube-apiserver-front
+#     backend:
+#       mode: tcp
+#       balance: roundrobin
+#     backend_name: kube-apiserver-backend
+#     server_group_name: all_kube_masters
+#     balance_target_port: 6443
+#     balance_bind_port: 6443

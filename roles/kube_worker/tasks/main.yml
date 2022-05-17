@@ -1,0 +1,14 @@
+---
+
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- ansible.builtin.import_tasks: reset.yml
+  when: 
+    - "ansible_facts.services['kubelet.service'].state == 'running'"
+    - "tear_down_cluster"
+
+- ansible.builtin.import_tasks: join.yml
+  when: >
+    ansible_facts.services['kubelet.service'].state != 'running' 
+    or (register_tear_down is defined and register_tear_down.changed)

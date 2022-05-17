@@ -1,0 +1,27 @@
+---
+
+haproxy_balances:
+
+  - frontend:
+      mode: tcp
+      option: tcplog
+    frontend_name: kube-nginx-ingress-http-front
+    backend:
+      mode: tcp
+      balance: roundrobin
+    backend_name: kube-nginx-ingress-http-backend
+    server_group_name: all_kube
+    balance_target_port: "{{ nginx_ingress_node_port_http }}"
+    balance_bind_port: 80
+
+  - frontend:
+      mode: tcp
+      option: tcplog
+    frontend_name: kube-nginx-ingress-https-front
+    backend:
+      mode: tcp
+      balance: roundrobin
+    backend_name: kube-nginx-ingress-https-backend
+    server_group_name: all_kube
+    balance_target_port: "{{ nginx_ingress_node_port_https }}"
+    balance_bind_port: 443

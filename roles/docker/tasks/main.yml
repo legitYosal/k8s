@@ -1,0 +1,75 @@
+---
+- name: Add Docker GPG apt key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  retries: 3
+  delay: 30
+  register: result
+  until: result is succeeded
+
+- name: Add Docker Repository
+  ansible.builtin.apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ ansible_facts['lsb']['codename'] }} stable
+    state: present
+    update_cache: true
+  retries: 3
+  delay: 30
+  register: result
+  until: result is succeeded
+
+- name: Update apt and Install docker-ce
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    update_cache: false
+    cache_valid_time: 3600
+    # state: 5:20.10.14~3-0~ubuntu-focal # FIXME: Use variables
+    state: present
+  retries: 3
+  delay: 30
+  register: result
+  until: result is succeeded
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Change cgroup driver to systemd
+  become: true
+  ansible.builtin.copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: "a+x"
+  register: docker_daemon_json
+
+- name: Restart docker servcie
+  become: true
+  ansible.builtin.systemd:
+    state: restarted
+    name: docker
+  when: docker_daemon_json.changed
+  
+
+- name: Add remote "{{ ansible_ssh_user }}" user to "docker" group
+  ansible.builtin.user:
+    name: "{{ ansible_ssh_user }}"
+    groups: docker
+    append: true
+
+- name: Apply chmod on docker.sock
+  ansible.builtin.file:
+    path: /var/run/docker.sock
+    mode: a+x
+
+- name: Creates cli-plugins directory
+  ansible.builtin.file:
+    path: /usr/local/lib/docker/cli-plugins
+    state: directory
+    mode: 0775
+
+
+
+- import_tasks: install-compose.yml
+  when: install_docker_compose
