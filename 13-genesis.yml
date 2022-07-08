@@ -11,4 +11,3 @@
     - docker
     - basic_kube
     - kube_master
-    # iptables

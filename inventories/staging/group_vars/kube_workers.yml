@@ -8,8 +8,8 @@ netplan_configurations:
         - "{{ ansible_host }}/24"
       nameservers:
         addresses:
-          - "{{ public_dns_addresses.0 }}"
-          - "{{ public_dns_addresses.1 }}"
+          - "{{ dns_addresses.0 }}"
+          - "{{ dns_addresses.1 }}"
       gateway4: "{{ default_gateway4 }}"
       match:
         macaddress: "{{ ansible_facts['eth0']['macaddress'] }}"

@@ -1,24 +1,24 @@
-[all_kube:children]
+[k8s_cluster:children]
 all_kube_masters
 kube_workers
 
-[kube_workers]
-worker1 ansible_host=192.168.1.213
-worker2 ansible_host=192.168.1.52
+[k8s_workers]
+; worker1 ansible_host=192.168.1.213
+; worker2 ansible_host=192.168.1.52
 
-[kube_genesis] # one node that other masters use its certificate
-master1 ansible_host=192.168.1.45
+[k8s_genesis] # one node that other masters use its certificate
+; master1 ansible_host=192.168.1.45
 
-[kube_masters] # multiple ha nodes
-master2 ansible_host=192.168.1.26
-master3 ansible_host=192.168.1.6
+[k8s_smasters] # multiple ha nodes
+; master2 ansible_host=192.168.1.26
+; master3 ansible_host=192.168.1.6
 
-[all_kube_masters:children]
+[k8s_masters:children]
 kube_genesis
 kube_masters
 
 [balancers]
-ha1 ansible_host=192.168.1.89
+; ha1 ansible_host=192.168.1.89
 
 [gateways]
 gateway1 ansible_host=localhost ansible_connection=local
