@@ -4,7 +4,7 @@ ansible_user: ubuntu
 nginx_ingress_node_port_http: 30500
 nginx_ingress_node_port_https: 30501
 
-default_gateway4: 192.168.1.36
+default_gateway4: "{{ hostvars[groups['gateways'].0].ipv4_address }}"
 
 dns_addresses:
   - 8.8.8.8
