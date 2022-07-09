@@ -7,7 +7,7 @@ nginx_ingress_node_port_https: 30501
 default_gateway4: "{{ hostvars[groups['gateways'].0].ipv4_address }}"
 
 dns_addresses:
-  - 8.8.8.8
-  - 1.1.1.1
+  # - 8.8.8.8
+  # - 1.1.1.1
   - 178.22.122.100
   - 185.51.200.2

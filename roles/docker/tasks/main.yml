@@ -21,9 +21,6 @@
 - name: Update apt and Install docker-ce
   ansible.builtin.apt:
     name: "{{ item }}"
-    update_cache: false
-    cache_valid_time: 3600
-    # state: 5:20.10.14~3-0~ubuntu-focal # FIXME: Use variables
     state: present
   retries: 3
   delay: 30
