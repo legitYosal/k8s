@@ -3,18 +3,14 @@
 - name: Init kuber cluster master node
   become: true
   ansible.builtin.command: >
-    kubeadm init --pod-network-cidr=10.244.0.0/16
+    kubeadm init --pod-network-cidr=192.168.0.0/16
     --control-plane-endpoint "{{ hostvars[groups['k8s_lb'].0].ansible_host }}:{{ api_server_default_port }}"
 
 
 
 - ansible.builtin.import_tasks: configure.yml
 
-# - name: Enable cni plugin
-#   become: true
-#   ansible.builtin.command: >
-#     kubectl apply -f 
-#     {{ flannel_kubernetes_manifest_url }}
+- ansible.builtin.import_tasks: calico.yml
 
 - name: Wait for master to get ready
   ansible.builtin.command: "/usr/bin/kubectl get nodes"

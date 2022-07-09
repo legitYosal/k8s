@@ -1,10 +1,13 @@
 ---
 kuber_version: 1.24.0-00
 tear_down_cluster: false
-flannel_version: v0.17.0
-flannel_kubernetes_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/\
-  {{ flannel_version }}/Documentation/kube-flannel.yml"
+# flannel_version: v0.17.0
+# flannel_kubernetes_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/\
+  # {{ flannel_version }}/Documentation/kube-flannel.yml"
+calico_operator_manifest_url: "https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml"
+calico_custom_manifest_url: "https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml"
 api_server_default_port: 6443
 cplane_join_command_path: /tmp/kube_cplane_join_command
 worker_join_command_path: /tmp/kube_worker_join_command
 wait_for_master_to_get_ready: false
+custom_manifests_dir: /tmp/manifests
