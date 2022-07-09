@@ -1,11 +1,17 @@
 ---
 
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
 - name: Stop nginx 
   ansible.builtin.systemd:
     name: nginx
     state: stopped
     enabled: false
     force: true
+  when:
+    - "'nginx.service' in ansible_facts.services"
+    - ansible_facts.services['nginx.service'].state == 'running'
 
 - name: Update apt cache and install haproxy
   ansible.builtin.apt:
