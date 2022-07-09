@@ -1,4 +1,4 @@
 ---
 modules_load_k8s_conf_address: /etc/modules-load.d/k8s.conf
 sysctl_k8s_conf_address: /etc/sysctl.d/k8s.conf
-kuber_version: 1.23.6-00
+kuber_version: 1.24.0-00

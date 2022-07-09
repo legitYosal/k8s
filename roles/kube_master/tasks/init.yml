@@ -10,11 +10,11 @@
 
 - ansible.builtin.import_tasks: configure.yml
 
-- name: Enable cni plugin
-  become: true
-  ansible.builtin.command: >
-    kubectl apply -f 
-    {{ flannel_kubernetes_manifest_url }}
+# - name: Enable cni plugin
+#   become: true
+#   ansible.builtin.command: >
+#     kubectl apply -f 
+#     {{ flannel_kubernetes_manifest_url }}
 
 - name: Wait for master to get ready
   ansible.builtin.command: "/usr/bin/kubectl get nodes"
