@@ -4,7 +4,7 @@
   become: true
   ansible.builtin.command: >
     kubeadm init --pod-network-cidr=10.244.0.0/16
-    --control-plane-endpoint "{{ hostvars[groups['balancers'].0].ansible_host }}:{{ api_server_default_port }}"
+    --control-plane-endpoint "{{ hostvars[groups['k8s_lb'].0].ansible_host }}:{{ api_server_default_port }}"
 
 
 
