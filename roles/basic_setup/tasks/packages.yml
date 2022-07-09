@@ -6,11 +6,16 @@
 #     update_cache: true
 #     cache_valid_time: 3600
 
-- name: Update apt cache and make sure packages are installed
+- name: Update apt cache
   ansible.builtin.apt:
-    name: "{{ item }}"
     update_cache: true
     cache_valid_time: 3600
+  retries: 2
+  delay: 5
+
+- name: Make sure packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
   retries: 3
   delay: 10
   become: true
