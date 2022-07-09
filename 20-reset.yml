@@ -1,7 +1,7 @@
 --- # Configure 
 
 - name: Reset all the kubelet instances at once
-  hosts: all_kube
+  hosts: k8s_cluster
   remote_user: ubuntu
   become: true
   become_method: sudo

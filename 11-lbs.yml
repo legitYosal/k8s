@@ -1,7 +1,7 @@
 --- # Configure
 
 - name: Configure load balancer
-  hosts: balancers
+  hosts: k8s_lb
   remote_user: "{{ ansible_user }}"
   become: true
   gather_facts: true

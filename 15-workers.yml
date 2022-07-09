@@ -1,7 +1,7 @@
 --- # Configure
 
 - name: Configure worker nodes
-  hosts: kube_workers
+  hosts: k8s_workers
   remote_user: "{{ ansible_user }}"
   become: true
   gather_facts: true

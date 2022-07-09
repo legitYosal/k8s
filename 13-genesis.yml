@@ -1,7 +1,7 @@
 --- # Configure
 
 - name: Configure kube master genesis node
-  hosts: kube_genesis
+  hosts: k8s_genesis
   remote_user: "{{ ansible_user }}"
   become: true
   gather_facts: true

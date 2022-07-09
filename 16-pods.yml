@@ -1,7 +1,7 @@
 --- # Configure
 
 - name: Deployment of pods from genesis master
-  hosts: kube_genesis
+  hosts: k8s_genesis
   remote_user: "{{ ansible_user }}"
   become: true
   gather_facts: true

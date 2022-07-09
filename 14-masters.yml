@@ -1,7 +1,7 @@
 --- # Configure
 
 - name: Configure kube other master nodes
-  hosts: kube_masters
+  hosts: k8s_smasters
   remote_user: "{{ ansible_user }}"
   become: true
   become_method: sudo
