@@ -6,8 +6,6 @@
     kubeadm init --pod-network-cidr=192.168.0.0/16
     --control-plane-endpoint "{{ hostvars[groups['k8s_lb'].0].ansible_host }}:{{ api_server_default_port }}"
 
-
-
 - ansible.builtin.import_tasks: configure.yml
 
 - ansible.builtin.import_tasks: calico.yml

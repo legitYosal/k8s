@@ -41,13 +41,27 @@
     mode: "a+x"
   register: docker_daemon_json
 
+- name: Enable cri for containerd
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^disabled_plugins'
+    state: absent
+  register: containerd_config
+
+- name: Restart containerd service
+  become: true 
+  ansible.builtin.systemd:
+    state: restarted
+    name: containerd
+  when: containerd_config.changed
+
 - name: Restart docker servcie
   become: true
   ansible.builtin.systemd:
     state: restarted
     name: docker
   when: docker_daemon_json.changed
-  
 
 - name: Add remote "{{ ansible_ssh_user }}" user to "docker" group
   ansible.builtin.user:
