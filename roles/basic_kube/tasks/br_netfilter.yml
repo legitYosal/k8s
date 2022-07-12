@@ -28,6 +28,13 @@
     mode: "a+x"
   register: copy_sysctl_br_netfilter
 
+- ansible.posix.sysctl:
+    name: net/bridge/bridge-nf-call-iptables
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
 - name: Reload sysctl configs
   become: true
   ansible.builtin.command: sudo sysctl --system
