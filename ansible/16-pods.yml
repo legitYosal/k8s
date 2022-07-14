@@ -8,5 +8,5 @@
   roles:
     - ingress_nginx
     - kube_dashboard
-    - kube_monitoring
+    # - kube_monitoring
     # iptables

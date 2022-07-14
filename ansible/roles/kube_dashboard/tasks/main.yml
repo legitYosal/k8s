@@ -52,7 +52,7 @@
         - host: "{{ dashboard_domain }}"
           http:
             paths:
-            - path: "/"
+            - path: "/dashboard"
               pathType: Prefix
               backend:
                 service:
