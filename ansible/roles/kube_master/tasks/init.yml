@@ -1,10 +1,17 @@
 ---
 
-- name: Init kuber cluster master node
+- name: Init kuber ha cluster master node
   become: true
   ansible.builtin.command: >
     kubeadm init --pod-network-cidr=192.168.0.0/16
     --control-plane-endpoint "{{ hostvars[groups['k8s_lb'].0].ansible_host }}:{{ api_server_default_port }}"
+  when: groups['k8s_lb'] is defined and groups['k8s_lb'] | length > 0
+
+- name: Init kuber single master cluster
+  become: true
+  ansible.builtin.command: >
+    kubeadm init --pod-network-cidr=192.168.0.0/16
+  when: groups['k8s_lb'] is not defined or groups['k8s_lb'] | length < 1
 
 - ansible.builtin.import_tasks: configure.yml
 
